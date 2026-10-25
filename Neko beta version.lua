@@ -47,7 +47,8 @@ local function makeDraggable(guiFrame, dragHandle)
 end
 
 --------------------------------------------------------------------------------
--- KEYS & AUTHENTICATION SCREEN (KEYAUTH OFICIAL CON SESIÓN)
+--------------------------------------------------------------------------------
+-- KEYS & AUTHENTICATION SCREEN (CON MENSAJE DE COMPATIBILIDAD)
 --------------------------------------------------------------------------------
 local KeyAuthApp = {
     Name = "NekohubBeta",
@@ -89,7 +90,7 @@ local StatusLabel = Instance.new("TextLabel", LoadFrame)
 StatusLabel.Size = UDim2.new(1, 0, 0, 24)
 StatusLabel.Position = UDim2.new(0, 0, 0.28, 0)
 StatusLabel.BackgroundTransparency = 1
-StatusLabel.Text = "Inicializando conexión con KeyAuth..."
+StatusLabel.Text = "Conectando con KeyAuth..."
 StatusLabel.TextColor3 = Color3.fromRGB(240, 240, 240)
 StatusLabel.Font = Enum.Font.Gotham
 StatusLabel.TextSize = 11
@@ -147,23 +148,39 @@ if isWhitelistedUser then
     LoadScreenGui:Destroy()
     authenticated = true
 else
-    local successInit, initReq = pcall(function()
-        return game:HttpGet(string.format("https://keyauth.win/api/1.1/?name=%s&ownerid=%s&type=init&ver=%s", KeyAuthApp.Name, KeyAuthApp.OwnerId, KeyAuthApp.Version))
-    end)
+    task.spawn(function()
+        local attempts = 0
+        while sessionid == "" and attempts < 5 do
+            attempts = attempts + 1
+            StatusLabel.Text = "Conectando (Intento " .. attempts .. "/5)..."
+            
+            local successInit, initReq = pcall(function()
+                return game:HttpGet(string.format("https://keyauth.win/api/1.1/?name=%s&ownerid=%s&type=init&ver=%s", KeyAuthApp.Name, KeyAuthApp.OwnerId, KeyAuthApp.Version))
+            end)
 
-    if successInit and initReq and initReq ~= "KeyAuth_Invalid" then
-        local initData = HttpService:JSONDecode(initReq)
-        if initData.success == true then
-            sessionid = initData.sessionid
-            StatusLabel.Text = "Ingresa tu Key de KeyAuth..."
-        else
-            StatusLabel.TextColor3 = Color3.fromRGB(255, 60, 60)
-            StatusLabel.Text = "❌ Error Init: " .. tostring(initData.message)
+            if successInit and initReq and initReq ~= "KeyAuth_Invalid" then
+                local successDecode, initData = pcall(function()
+                    return HttpService:JSONDecode(initReq)
+                end)
+                if successDecode and initData and initData.success == true then
+                    sessionid = initData.sessionid
+                    StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+                    StatusLabel.Text = "¡Conectado! Ingresa tu Key."
+                    break
+                end
+            end
+            task.wait(1.5)
         end
-    else
-        StatusLabel.TextColor3 = Color3.fromRGB(255, 60, 60)
-        StatusLabel.Text = "❌ Error de conexión con KeyAuth (Init)."
-    end
+
+        if sessionid == "" then
+            StatusLabel.TextColor3 = Color3.fromRGB(255, 60, 60)
+            StatusLabel.Text = "❌ Tu ejecutor no soporta este script!"
+            KeyInputBox.Editable = false
+            SubmitKeyBtn.Active = false
+            SubmitKeyBtn.BackgroundColor3 = Color3.fromRGB(100, 30, 30)
+            SubmitKeyBtn.Text = "❌ NO SOPORTADO"
+        end
+    end)
 
     SubmitKeyBtn.Activated:Connect(function()
         local userKey = KeyInputBox.Text:gsub("%s+", "")
@@ -175,7 +192,7 @@ else
 
         if sessionid == "" then
             StatusLabel.TextColor3 = Color3.fromRGB(255, 60, 60)
-            StatusLabel.Text = "❌ Sesión no inicializada. Reinicia el script."
+            StatusLabel.Text = "❌ Tu ejecutor no soporta este script!"
             return
         end
 
@@ -187,16 +204,23 @@ else
         end)
 
         if successLogin and loginReq then
-            local loginData = HttpService:JSONDecode(loginReq)
-            if loginData.success == true then
-                StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
-                StatusLabel.Text = "✅ ¡Key Correcta! Abriendo..."
-                task.wait(1)
-                LoadScreenGui:Destroy()
-                authenticated = true
+            local successDecLogin, loginData = pcall(function()
+                return HttpService:JSONDecode(loginReq)
+            end)
+            if successDecLogin and loginData then
+                if loginData.success == true then
+                    StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+                    StatusLabel.Text = "✅ ¡Key Correcta! Abriendo..."
+                    task.wait(1)
+                    LoadScreenGui:Destroy()
+                    authenticated = true
+                else
+                    StatusLabel.TextColor3 = Color3.fromRGB(255, 60, 60)
+                    StatusLabel.Text = "❌ " .. tostring(loginData.message)
+                end
             else
                 StatusLabel.TextColor3 = Color3.fromRGB(255, 60, 60)
-                StatusLabel.Text = "❌ " .. tostring(loginData.message)
+                StatusLabel.Text = "❌ Error al procesar respuesta."
             end
         else
             StatusLabel.TextColor3 = Color3.fromRGB(255, 60, 60)
@@ -205,7 +229,6 @@ else
     end)
     repeat task.wait(0.1) until authenticated
 end
-
 --------------------------------------------------------------------------------
 -- MAIN HUB CLEANUP & SETUP
 --------------------------------------------------------------------------------
