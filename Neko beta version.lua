@@ -1,5 +1,5 @@
 -- ============================================================================
--- NEKO HUB V1 | THE RAKE ULTIMATE COMPLETE EDITION (NOCLIP + SPEED SLIDER 60)
+-- NEKO HUB V1 | THE RAKE ULTIMATE COMPLETE EDITION (FINAL CLEANED VERSION)
 -- ============================================================================
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -9,6 +9,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Lighting = game:GetService("Lighting")
 local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
+local HttpService = game:GetService("HttpService")
 
 local LocalPlayer = Players.LocalPlayer
 local ParentGui = CoreGui
@@ -46,15 +47,17 @@ local function makeDraggable(guiFrame, dragHandle)
 end
 
 --------------------------------------------------------------------------------
--- KEYS & AUTHENTICATION SCREEN (NEKO HUB V1)
+-- KEYS & AUTHENTICATION SCREEN (KEYAUTH OFICIAL CON SESIÓN)
 --------------------------------------------------------------------------------
-local ADMIN_USERNAME = "puraCLCNZ2"
-
-local VALID_KEYS_LOOKUP = {
-    ["Neko2026"] = true
+local KeyAuthApp = {
+    Name = "NekohubBeta",
+    OwnerId = "dazLHq43i6",
+    Version = "1.0",
+    LinkvertiseUrl = "https://link-hub.net/10346194/oE6t6ZM68G0v"
 }
 
-local isAdmin = (LocalPlayer.Name:lower() == ADMIN_USERNAME:lower())
+local ALLOWED_USERNAME = "puraCLCNZ2"
+local isWhitelistedUser = (LocalPlayer.Name:lower() == ALLOWED_USERNAME:lower())
 
 local LoadScreenGui = Instance.new("ScreenGui", ParentGui)
 LoadScreenGui.Name = "NekoHubLoading"
@@ -63,7 +66,7 @@ LoadScreenGui.DisplayOrder = 999
 
 local LoadFrame = Instance.new("Frame", LoadScreenGui)
 LoadFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-LoadFrame.Size = UDim2.new(0, 440, 0, 250)
+LoadFrame.Size = UDim2.new(0, 440, 0, 260)
 LoadFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
 LoadFrame.BackgroundColor3 = Color3.fromRGB(26, 20, 24)
 Instance.new("UICorner", LoadFrame).CornerRadius = UDim.new(0, 14)
@@ -77,33 +80,25 @@ local LoadTitle = Instance.new("TextLabel", LoadFrame)
 LoadTitle.Size = UDim2.new(1, 0, 0, 40)
 LoadTitle.Position = UDim2.new(0, 0, 0, 6)
 LoadTitle.BackgroundTransparency = 1
-LoadTitle.Text = "🌸 NEKO HUB V1 — AUTHENTICATION 🌸"
+LoadTitle.Text = "🌸 NEKO HUB V1 — KEY SYSTEM 🌸"
 LoadTitle.TextColor3 = Color3.fromRGB(255, 182, 193)
 LoadTitle.Font = Enum.Font.GothamBold
 LoadTitle.TextSize = 12
 
 local StatusLabel = Instance.new("TextLabel", LoadFrame)
 StatusLabel.Size = UDim2.new(1, 0, 0, 24)
-StatusLabel.Position = UDim2.new(0, 0, 0.32, 0)
+StatusLabel.Position = UDim2.new(0, 0, 0.28, 0)
 StatusLabel.BackgroundTransparency = 1
-
--- Corrección del operador ternario para Luau (if-else clásico)
-if isAdmin then
-    StatusLabel.Text = "👑 Welcome Admin: " .. ADMIN_USERNAME
-    StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
-else
-    StatusLabel.Text = "Enter Key..."
-    StatusLabel.TextColor3 = Color3.fromRGB(240, 240, 240)
-end
-
+StatusLabel.Text = "Inicializando conexión con KeyAuth..."
+StatusLabel.TextColor3 = Color3.fromRGB(240, 240, 240)
 StatusLabel.Font = Enum.Font.Gotham
 StatusLabel.TextSize = 11
 
 local KeyInputBox = Instance.new("TextBox", LoadFrame)
-KeyInputBox.Size = UDim2.new(0.88, 0, 0, 38)
-KeyInputBox.Position = UDim2.new(0.06, 0, 0.45, 0)
+KeyInputBox.Size = UDim2.new(0.88, 0, 0, 36)
+KeyInputBox.Position = UDim2.new(0.06, 0, 0.40, 0)
 KeyInputBox.BackgroundColor3 = Color3.fromRGB(38, 28, 34)
-KeyInputBox.PlaceholderText = "Enter Key..."
+KeyInputBox.PlaceholderText = "Ingresa tu Key..."
 KeyInputBox.Text = ""
 KeyInputBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 KeyInputBox.PlaceholderColor3 = Color3.fromRGB(180, 160, 170)
@@ -113,28 +108,99 @@ KeyInputBox.ClearTextOnFocus = false
 Instance.new("UICorner", KeyInputBox).CornerRadius = UDim.new(0, 8)
 
 local SubmitKeyBtn = Instance.new("TextButton", LoadFrame)
-SubmitKeyBtn.Size = UDim2.new(0.88, 0, 0, 38)
-SubmitKeyBtn.Position = UDim2.new(0.06, 0, 0.72, 0)
+SubmitKeyBtn.Size = UDim2.new(0.42, 0, 0, 38)
+SubmitKeyBtn.Position = UDim2.new(0.06, 0, 0.70, 0)
 SubmitKeyBtn.BackgroundColor3 = Color3.fromRGB(255, 105, 180)
-SubmitKeyBtn.Text = "🚀 VERIFY KEY & LAUNCH"
+SubmitKeyBtn.Text = "🔑 VERIFICAR KEY"
 SubmitKeyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 SubmitKeyBtn.Font = Enum.Font.GothamBold
 SubmitKeyBtn.TextSize = 11
 Instance.new("UICorner", SubmitKeyBtn).CornerRadius = UDim.new(0, 8)
 
-local authenticated = false
+local GetKeyBtn = Instance.new("TextButton", LoadFrame)
+GetKeyBtn.Size = UDim2.new(0.42, 0, 0, 38)
+GetKeyBtn.Position = UDim2.new(0.52, 0, 0.70, 0)
+GetKeyBtn.BackgroundColor3 = Color3.fromRGB(55, 25, 40)
+GetKeyBtn.Text = "🔗 OBTENER KEY"
+GetKeyBtn.TextColor3 = Color3.fromRGB(255, 182, 193)
+GetKeyBtn.Font = Enum.Font.GothamBold
+GetKeyBtn.TextSize = 11
+Instance.new("UICorner", GetKeyBtn).CornerRadius = UDim.new(0, 8)
+local getStroke = Instance.new("UIStroke", GetKeyBtn)
+getStroke.Color = Color3.fromRGB(255, 105, 180)
 
-if isAdmin then
+GetKeyBtn.Activated:Connect(function()
+    if setclipboard then
+        setclipboard(KeyAuthApp.LinkvertiseUrl)
+        StatusLabel.Text = "✅ ¡Enlace copiado al portapapeles!"
+        StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+    else
+        StatusLabel.Text = "❌ Tu ejecutor no soporta setclipboard"
+        StatusLabel.TextColor3 = Color3.fromRGB(255, 60, 60)
+    end
+end)
+
+local authenticated = false
+local sessionid = ""
+
+if isWhitelistedUser then
     LoadScreenGui:Destroy()
     authenticated = true
 else
-    SubmitKeyBtn.Activated:Connect(function()
-        if VALID_KEYS_LOOKUP[KeyInputBox.Text:gsub("%s+", "")] then
-            LoadScreenGui:Destroy()
-            authenticated = true
+    local successInit, initReq = pcall(function()
+        return game:HttpGet(string.format("https://keyauth.win/api/1.1/?name=%s&ownerid=%s&type=init&ver=%s", KeyAuthApp.Name, KeyAuthApp.OwnerId, KeyAuthApp.Version))
+    end)
+
+    if successInit and initReq and initReq ~= "KeyAuth_Invalid" then
+        local initData = HttpService:JSONDecode(initReq)
+        if initData.success == true then
+            sessionid = initData.sessionid
+            StatusLabel.Text = "Ingresa tu Key de KeyAuth..."
         else
             StatusLabel.TextColor3 = Color3.fromRGB(255, 60, 60)
-            StatusLabel.Text = "❌ INVALID KEY!"
+            StatusLabel.Text = "❌ Error Init: " .. tostring(initData.message)
+        end
+    else
+        StatusLabel.TextColor3 = Color3.fromRGB(255, 60, 60)
+        StatusLabel.Text = "❌ Error de conexión con KeyAuth (Init)."
+    end
+
+    SubmitKeyBtn.Activated:Connect(function()
+        local userKey = KeyInputBox.Text:gsub("%s+", "")
+        if userKey == "" then
+            StatusLabel.TextColor3 = Color3.fromRGB(255, 60, 60)
+            StatusLabel.Text = "❌ ¡Escribe una Key válida!"
+            return
+        end
+
+        if sessionid == "" then
+            StatusLabel.TextColor3 = Color3.fromRGB(255, 60, 60)
+            StatusLabel.Text = "❌ Sesión no inicializada. Reinicia el script."
+            return
+        end
+
+        StatusLabel.TextColor3 = Color3.fromRGB(255, 255, 100)
+        StatusLabel.Text = "⏳ Validando Key..."
+
+        local successLogin, loginReq = pcall(function()
+            return game:HttpGet(string.format("https://keyauth.win/api/1.1/?name=%s&ownerid=%s&type=license&key=%s&ver=%s&sessionid=%s", KeyAuthApp.Name, KeyAuthApp.OwnerId, userKey, KeyAuthApp.Version, sessionid))
+        end)
+
+        if successLogin and loginReq then
+            local loginData = HttpService:JSONDecode(loginReq)
+            if loginData.success == true then
+                StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+                StatusLabel.Text = "✅ ¡Key Correcta! Abriendo..."
+                task.wait(1)
+                LoadScreenGui:Destroy()
+                authenticated = true
+            else
+                StatusLabel.TextColor3 = Color3.fromRGB(255, 60, 60)
+                StatusLabel.Text = "❌ " .. tostring(loginData.message)
+            end
+        else
+            StatusLabel.TextColor3 = Color3.fromRGB(255, 60, 60)
+            StatusLabel.Text = "❌ Error de red al validar la Key."
         end
     end)
     repeat task.wait(0.1) until authenticated
@@ -146,17 +212,17 @@ end
 if getgenv().NekoHubCleanup then pcall(getgenv().NekoHubCleanup) end
 
 local Features = {
-    Fly = false, InfJump = false, FullBright = false,
+    Fly = false, InfJump = false, FullBright = false, MaxStamina = false,
     AutoAttack = false, BringBoss = false, 
     AutoPickup = false, TriggerBot = false, AutoKill = false,
     Noclip = false, AutoInteract = false, AutoMiscSouls = false, 
     PlayerESP = false, RakeESP = false, InfReach = false, AIBattle = false,
-    BringSpawnables = false, AutoCandyTP = false, WalkSpeedBoost = false,
-    ContinuousFire = false, AutoEscape = false
+    BringSpawnables = false, AutoCandyTP = false, WalkSpeedBoost = false, JumpPowerBoost = false,
+    ContinuousFire = false, ExpandRakeHitbox = false
 }
 
 local InfReachDistance = 25
-local CustomWalkSpeedVal = 16
+local CustomWalkSpeedVal = 40
 
 local Connections, Tasks = {}, {}
 local OrigLighting = {Ambient = Lighting.Ambient, Brightness = Lighting.Brightness, ClockTime = Lighting.ClockTime, GlobalShadows = Lighting.GlobalShadows}
@@ -360,14 +426,12 @@ local function createTab(name, icon, order)
     return page
 end
 
--- Create Tabs
 local InfoPage   = createTab("Info", "ℹ️", 1)
 local MainPage   = createTab("Main", "🌸", 2)
 local AutoPage   = createTab("Auto", "🔄", 3)
 local GunPage    = createTab("Gun", "🔫", 4)
 local PlayerPage = createTab("Player", "🏃", 5)
 
--- Default Active Tab
 TabButtons["Main"].BackgroundColor3 = Color3.fromRGB(255, 105, 180)
 TabButtons["Main"].TextColor3 = Color3.fromRGB(255, 255, 255)
 TabFrames["Main"].Visible = true
@@ -419,7 +483,7 @@ local InfoLabel = Instance.new("TextLabel", InfoCard)
 InfoLabel.Size = UDim2.new(1, -20, 1, -20)
 InfoLabel.Position = UDim2.new(0, 10, 0, 10)
 InfoLabel.BackgroundTransparency = 1
-InfoLabel.Text = "🌸 NEKO HUB V1\n\nOwner: puraCLCNZ2\nUser: " .. LocalPlayer.Name .. "\nStatus: Admin Authorized"
+InfoLabel.Text = "🌸 NEKO HUB V1\n\nOwner: puraCLCNZ2\nUser: " .. LocalPlayer.Name .. "\nStatus: KeyAuth Authorized"
 InfoLabel.TextColor3 = Color3.fromRGB(255, 182, 193)
 InfoLabel.Font = Enum.Font.GothamMedium
 InfoLabel.TextSize = 11
@@ -647,6 +711,7 @@ local CandyTpBtn, CandyS, CandyG = CreatePageBtn(AutoPage, "🌀 Bring Candy To 
 local MiscSoulsBtn, MiscSS, MiscSG = CreatePageBtn(AutoPage, "👻 Soul Farm: OFF", 3)
 local BringSpawnablesBtn, SpawnS, SpawnG = CreatePageBtn(AutoPage, "🎯 Turrets/Spawnables -> Rake: OFF", 4)
 local CooldownBtn, CooldownS, CooldownG = CreatePageBtn(AutoPage, "⚡ Bypass de Cooldown: OFF", 5)
+local AutoCandyBtn, AutoCandyS, AutoCandyG = CreatePageBtn(AutoPage, "🍬 Auto Recoger Caramelos: OFF", 6)
 
 safeBindClick(AutoPickupBtn, function()
     Features.AutoPickup = not Features.AutoPickup
@@ -783,6 +848,13 @@ safeBindClick(CooldownBtn, function()
     CooldownG.Color = cooldownBypass and ON_GRAD or OFF_GRAD
 end)
 
+local candy = false
+safeBindClick(AutoCandyBtn, function()
+    candy = not candy
+    AutoCandyBtn.Text = candy and "🍬 Auto Recoger Caramelos: ON" or "🍬 Auto Recoger Caramelos: OFF"
+    AutoCandyG.Color = candy and ON_GRAD or OFF_GRAD
+end)
+
 task.spawn(function()
     while true do
         task.wait(0.15)
@@ -801,6 +873,23 @@ task.spawn(function()
                 if LocalPlayer.Backpack then for _, v in ipairs(LocalPlayer.Backpack:GetChildren()) do check(v) end end
             end)
         end
+        if candy then
+            pcall(function()
+                local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    for _, obj in ipairs(Workspace:GetDescendants()) do
+                        if obj.Name:lower():find("candy") then
+                            local part = obj:IsA("BasePart") and obj or obj:FindFirstChildWhichIsA("BasePart")
+                            local fti = firetouchinterest
+                            if part and typeof(fti) == "function" then
+                                fti(hrp, part, 0)
+                                fti(hrp, part, 1)
+                            end
+                        end
+                    end
+                end
+            end)
+        end
     end
 end)
 
@@ -809,6 +898,7 @@ end)
 --------------------------------------------------------------------------------
 local InjectMemBtn, InjectMemS, InjectMemG = CreatePageBtn(GunPage, "1. Inyectar Memoria (Bypass Anti-Kick & Balas 9999)", 1)
 local ContFireBtn, ContFireS, ContFireG = CreatePageBtn(GunPage, "2. Ráfaga Continua (Sin Vacío): OFF", 2)
+local ExpandRakeBtn, ExpandRakeS, ExpandRakeG = CreatePageBtn(GunPage, "3. Expandir Hitbox Rake: OFF", 3)
 
 safeBindClick(InjectMemBtn, function()
     local successCount = 0
@@ -888,19 +978,50 @@ Connections.ContinuousFireLoop = RunService.RenderStepped:Connect(function()
     end
 end)
 
+safeBindClick(ExpandRakeBtn, function()
+    Features.ExpandRakeHitbox = not Features.ExpandRakeHitbox
+    ExpandRakeBtn.Text = Features.ExpandRakeHitbox and "3. Expandir Hitbox Rake: ON" or "3. Expandir Hitbox Rake: OFF"
+    ExpandRakeG.Color = Features.ExpandRakeHitbox and ON_GRAD or OFF_GRAD
+end)
+
+Connections.ExpandRakeLoop = RunService.RenderStepped:Connect(function()
+    if Features.ExpandRakeHitbox then
+        pcall(function()
+            local _, rakePart = findTheRakeModel()
+            if rakePart and rakePart.Parent then
+                for _, part in pairs(rakePart.Parent:GetChildren()) do
+                    if part:IsA("BasePart") then
+                        part.Size = Vector3.new(6, 6, 6)
+                        part.Transparency = 0.5
+                        part.CanCollide = false
+                    end
+                end
+            end
+        end)
+    end
+end)
+
 --------------------------------------------------------------------------------
--- 5. PLAYER TAB CONTENT (WITH NOCLIP & SPEED SLIDER MAX 60)
+-- 5. PLAYER TAB CONTENT (CLEANED VERSION)
 --------------------------------------------------------------------------------
 local FlyBtn, FlyS, FlyG = CreatePageBtn(PlayerPage, "🦅 Fly Hack: OFF", 1)
 local InfJumpBtn, InfJS, InfJG = CreatePageBtn(PlayerPage, "🦘 Inf Jump Loop: OFF", 2)
 local NoclipBtn, NoclipS, NoclipG = CreatePageBtn(PlayerPage, "👻 Noclip: OFF", 3)
 local BrightBtn, BrightS, BrightG = CreatePageBtn(PlayerPage, "💡 Full Bright: OFF", 4)
-local ESPBtn, ESPS, ESPG = CreatePageBtn(PlayerPage, "🚨 THE_RAKE ESP: OFF", 5)
-local PlayerESPBtn, PESPS, PESPG = CreatePageBtn(PlayerPage, "👁️ Player ESP: OFF", 6)
-local InteractBtn, IntS, IntG = CreatePageBtn(PlayerPage, "🦇 Interactuar automáticamente: OFF", 7)
-local AutoEscapeBtn, AutoEscS, AutoEscG = CreatePageBtn(PlayerPage, "🚨 Auto Escape (20% HP): OFF", 8)
+local StaminaBtn, StamS, StamG = CreatePageBtn(PlayerPage, "⚡ Max Stamina: OFF", 5)
+local ESPBtn, ESPS, ESPG = CreatePageBtn(PlayerPage, "🚨 THE_RAKE ESP: OFF", 6)
+local PlayerESPBtn, PESPS, PESPG = CreatePageBtn(PlayerPage, "👁️ Player ESP: OFF", 7)
+local InteractBtn, IntS, IntG = CreatePageBtn(PlayerPage, "🦇 Instant Interact: OFF", 8)
 
--- Noclip Logic
+-- BOTÓN TOGGLE PARA WALKSPEED BOOST
+local SpeedToggleBtn, SpeedToggleS, SpeedToggleG = CreatePageBtn(PlayerPage, "⚡ WalkSpeed Boost: OFF", 9)
+
+safeBindClick(SpeedToggleBtn, function()
+    Features.WalkSpeedBoost = not Features.WalkSpeedBoost
+    SpeedToggleBtn.Text = Features.WalkSpeedBoost and "⚡ WalkSpeed Boost: ON" or "⚡ WalkSpeed Boost: OFF"
+    SpeedToggleG.Color = Features.WalkSpeedBoost and ON_GRAD or OFF_GRAD
+end)
+
 safeBindClick(NoclipBtn, function()
     Features.Noclip = not Features.Noclip
     NoclipBtn.Text = Features.Noclip and "👻 Noclip: ON" or "👻 Noclip: OFF"
@@ -920,7 +1041,7 @@ Connections.NoclipLoop = RunService.Stepped:Connect(function()
     end
 end)
 
--- Sidebar / Slider para Custom WalkSpeed (Límite 60)
+-- SLIDER PARA WALKSPEED (MÍNIMO 40, MÁXIMO 100)
 local SpeedSliderFrame = Instance.new("Frame", PlayerPage)
 SpeedSliderFrame.Size = UDim2.new(1, 0, 0, 55)
 SpeedSliderFrame.BackgroundColor3 = Color3.fromRGB(38, 28, 34)
@@ -933,7 +1054,7 @@ local SpeedSliderLabel = Instance.new("TextLabel", SpeedSliderFrame)
 SpeedSliderLabel.Size = UDim2.new(1, -10, 0, 20)
 SpeedSliderLabel.Position = UDim2.new(0, 8, 0, 4)
 SpeedSliderLabel.BackgroundTransparency = 1
-SpeedSliderLabel.Text = "⚡ WalkSpeed (Max 60): 16"
+SpeedSliderLabel.Text = "⚡ WalkSpeed (40 - 100): 40"
 SpeedSliderLabel.TextColor3 = Color3.fromRGB(255, 182, 193)
 SpeedSliderLabel.Font = Enum.Font.GothamBold
 SpeedSliderLabel.TextSize = 10
@@ -976,20 +1097,21 @@ UserInputService.InputChanged:Connect(function(input)
     if draggingSpeedSlider and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
         local pos = math.clamp((input.Position.X - SpeedSliderBar.AbsolutePosition.X) / SpeedSliderBar.AbsoluteSize.X, 0, 1)
         SpeedSliderFill.Size = UDim2.new(pos, 0, 1, 0)
-        CustomWalkSpeedVal = math.floor(16 + (pos * 44)) -- Desde 16 hasta 60 max
-        SpeedSliderLabel.Text = "⚡ WalkSpeed (Max 60): " .. CustomWalkSpeedVal
+        CustomWalkSpeedVal = math.floor(40 + (pos * 60)) -- Rango de 40 a 100
+        SpeedSliderLabel.Text = "⚡ WalkSpeed (40 - 100): " .. CustomWalkSpeedVal
     end
 end)
 
 Connections.SpeedLoop = RunService.RenderStepped:Connect(function()
-    local char = LocalPlayer.Character
-    local hum = char and char:FindFirstChildOfClass("Humanoid")
-    if hum then
-        hum.WalkSpeed = CustomWalkSpeedVal
+    if Features.WalkSpeedBoost then
+        local char = LocalPlayer.Character
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
+        if hum then
+            hum.WalkSpeed = CustomWalkSpeedVal
+        end
     end
 end)
 
--- Player Tab Logic (Fly, InfJump, etc.)
 local bodyVel, bodyGyro
 safeBindClick(FlyBtn, function()
     Features.Fly = not Features.Fly
@@ -1041,6 +1163,26 @@ safeBindClick(BrightBtn, function()
     end
 end)
 
+safeBindClick(StaminaBtn, function()
+    Features.MaxStamina = not Features.MaxStamina
+    StaminaBtn.Text = Features.MaxStamina and "⚡ Max Stamina: ON" or "⚡ Max Stamina: OFF"
+    StamG.Color = Features.MaxStamina and ON_GRAD or OFF_GRAD
+end)
+Tasks.StaminaTask = task.spawn(function()
+    while true do
+        if Features.MaxStamina then
+            pcall(function()
+                local char = LocalPlayer.Character
+                if char then
+                    if char:FindFirstChild("Stamina") then char.Stamina.Value = 999999 end
+                    char:SetAttribute("Stamina", 999999)
+                end
+            end)
+        end
+        task.wait(0.2)
+    end
+end)
+
 safeBindClick(ESPBtn, function()
     Features.RakeESP = not Features.RakeESP
     ESPBtn.Text = Features.RakeESP and "🚨 RAKE ESP: ON" or "🚨 THE_RAKE ESP: OFF"
@@ -1078,7 +1220,7 @@ end)
 
 safeBindClick(InteractBtn, function()
     Features.AutoInteract = not Features.AutoInteract
-    InteractBtn.Text = Features.AutoInteract and "🦇 Interactuar automáticamente: ON" or "🦇 Interactuar automáticamente: OFF"
+    InteractBtn.Text = Features.AutoInteract and "🦇 Instant Int: ON" or "🦇 Instant Auto-Interact: OFF"
     IntG.Color = Features.AutoInteract and ON_GRAD or OFF_GRAD
 end)
 Connections.IntLoop = RunService.Heartbeat:Connect(function()
@@ -1086,33 +1228,5 @@ Connections.IntLoop = RunService.Heartbeat:Connect(function()
         for _, obj in ipairs(Workspace:GetDescendants()) do
             if obj:IsA("ProximityPrompt") then pcall(function() fireproximityprompt(obj) end) end
         end
-    end
-end)
-
--- Auto Escape al 20% de HP
-safeBindClick(AutoEscapeBtn, function()
-    Features.AutoEscape = not Features.AutoEscape
-    AutoEscapeBtn.Text = Features.AutoEscape and "🚨 Auto Escape (20% HP): ON" or "🚨 Auto Escape (20% HP): OFF"
-    AutoEscG.Color = Features.AutoEscape and ON_GRAD or OFF_GRAD
-end)
-
-Tasks.AutoEscapeTask = task.spawn(function()
-    while true do
-        if Features.AutoEscape then
-            pcall(function()
-                local char = LocalPlayer.Character
-                local hum = char and char:FindFirstChildOfClass("Humanoid")
-                local hrp = char and char:FindFirstChild("HumanoidRootPart")
-                if hum and hrp and hum.Health > 0 then
-                    local threshold = hum.MaxHealth * 0.20
-                    if hum.Health <= threshold then
-                        -- Teletransporte de seguridad hacia arriba si la vida es <= 20%
-                        hrp.CFrame = hrp.CFrame + Vector3.new(0, 100, 0)
-                        task.wait(1)
-                    end
-                end
-            end)
-        end
-        task.wait(0.2)
     end
 end)
